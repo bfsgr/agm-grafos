@@ -110,7 +110,6 @@ def test_bfs():
     g.addAresta(2, 5)
     g.addAresta(3, 1)
     g.addAresta(4, 3)
-    g.addAresta(5, 5)
 
     max_v = g.bfs(0)
 
