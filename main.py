@@ -47,25 +47,18 @@ class Grafo:
         self.vertices[u].adj.append(self.vertices[v])
         self.vertices[v].adj.append(self.vertices[u])
 
-    def reset_distance(self):
-        """
-        Define o atributo distance de todos os vértices como None
-        """
-        for v in self.vertices:
-            v.distance = None
-
     def bfs(self, v: int) -> int:
         """
         Versão modificada do BFS que calcula o vértice com distância máxima no grafo g em
         relação ao vértice v. Assume-se que v sempre está no grafo g
         """
         
-        self.reset_distance()
+        for x in self.vertices:
+            x.distance = None
 
         q = deque(maxlen=self.nodes)
 
         self.vertices[v].distance = 0
-        self.vertices[v].visited = True
 
         q.append(v)
 
@@ -87,7 +80,9 @@ class Grafo:
 
 def diameter(g: Grafo) -> int:
     """
-    Calcula o diametro da árvore (grafo) g
+    Calcula o diametro da árvore g.
+    O diametro é a maior distância entre dois nós folha.
+    Assume-se que g é uma árvore válida
     """
 
     vertex_a = g.bfs(0)
@@ -147,6 +142,21 @@ def main():
     g.addAresta(4, 5)
 
     assert diameter(g) == 4
+
+    g = Grafo(3)
+    g.addAresta(0, 1)
+    g.addAresta(0, 2)
+
+    assert diameter(g) == 2
+
+    g = Grafo(6)
+    g.addAresta(0, 1)
+    g.addAresta(0, 2)
+    g.addAresta(2, 3)
+    g.addAresta(3, 4)
+    g.addAresta(1, 5)
+
+    assert diameter(g) == 5
 
 
 if __name__ == '__main__':
