@@ -55,40 +55,41 @@ class Grafo:
         self.vertices[u].adj.append(self.vertices[v])
         self.vertices[v].adj.append(self.vertices[u])
 
-    def bfs(self, v: int) -> int:
-        """
-        Versão modificada do BFS que calcula o vértice com distância máxima no grafo g em
-        relação ao vértice v. Assume-se que v sempre está no grafo g
-        Retorna o número do vértice com distância máxima em relação à v
-        """
 
-        for x in self.vertices:
-            x.visitado = False
-            x.d = None
-            x.pai = None
+def vertice_mais_distante(g: Grafo, v: int) -> int:
+    """
+    Versão modificada do BFS que calcula o vértice com distância máxima no grafo g em
+    relação ao vértice v. Assume-se que v sempre está no grafo g
+    Retorna o número do vértice com distância máxima em relação à v
+    """
 
-        q = deque(maxlen=self.num_vertices)
+    for x in g.vertices:
+        x.visitado = False
+        x.d = None
+        x.pai = None
 
-        self.vertices[v].d = 0
-        self.vertices[v].visitado = True
+    q = deque(maxlen=g.num_vertices)
 
-        q.append(self.vertices[v])
+    g.vertices[v].d = 0
+    g.vertices[v].visitado = True
 
-        v_max_distance = self.vertices[v]
+    q.append(g.vertices[v])
 
-        while not len(q) == 0:
-            node: Vertice = q.popleft()
+    v_max_distance = g.vertices[v]
 
-            for vertex in node.adj:
-                if not vertex.visitado:
-                    vertex.d = node.d + 1
-                    vertex.visitado = True
-                    q.append(vertex)
+    while not len(q) == 0:
+        node: Vertice = q.popleft()
 
-                    if vertex.d > v_max_distance.d:
-                        v_max_distance = vertex
+        for vertex in node.adj:
+            if not vertex.visitado:
+                vertex.d = node.d + 1
+                vertex.visitado = True
+                q.append(vertex)
 
-        return v_max_distance.num
+                if vertex.d > v_max_distance.d:
+                    v_max_distance = vertex
+
+    return v_max_distance.num
 
 
 def verificar_arvore(g: Grafo) -> bool:
@@ -137,9 +138,9 @@ def diameter(g: Grafo) -> int:
     Caso o grafo g não seja uma árvore o retorno dessa função é imprevisível
     """
 
-    vertex_a = g.bfs(0)
+    vertex_a = vertice_mais_distante(g, 0)
 
-    vertex_b = g.bfs(vertex_a)
+    vertex_b = vertice_mais_distante(g, vertex_a)
 
     return g.vertices[vertex_b].d
 
@@ -177,8 +178,8 @@ def main():
     g.addAresta(3, 1)
     g.addAresta(4, 3)
 
-    assert g.bfs(0) == 5
-    assert g.bfs(2) == 0
+    assert vertice_mais_distante(g, 0) == 5
+    assert vertice_mais_distante(g, 2) == 0
 
     g = Grafo(10)
     g.addAresta(0, 3)
@@ -192,7 +193,7 @@ def main():
     g.addAresta(7, 4)
     g.addAresta(4, 1)
 
-    assert g.bfs(0)
+    assert vertice_mais_distante(g, 0)
 
     """
     Executa os testes das funções diametro e verificar_arvore 
@@ -206,14 +207,14 @@ def main():
     g.addAresta(4, 5)
 
     assert diameter(g) == 4
-    assert verificar_arvore(g) == True
+    assert verificar_arvore(g) is True
 
     g = Grafo(3)
     g.addAresta(0, 1)
     g.addAresta(0, 2)
 
     assert diameter(g) == 2
-    assert verificar_arvore(g) == True
+    assert verificar_arvore(g) is True
 
     g = Grafo(6)
     g.addAresta(0, 1)
@@ -223,14 +224,14 @@ def main():
     g.addAresta(1, 5)
 
     assert diameter(g) == 5
-    assert verificar_arvore(g) == True
+    assert verificar_arvore(g) is True
 
     g = Grafo(3)
     g.addAresta(0, 1)
     g.addAresta(0, 2)
     g.addAresta(1, 2)
 
-    assert verificar_arvore(g) == False
+    assert verificar_arvore(g) is False
 
     """
     Testa a geração de árvores pelo random_tree_random_walk com múltiplos números de vértices
