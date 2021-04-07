@@ -1,3 +1,8 @@
 __pycache__
 .idea
 .vscode
+conexo.py
+grafo.py
+plot.py
+randomwalk.pdf
+randomwalk.txt
