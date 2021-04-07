@@ -163,7 +163,7 @@ def random_tree_random_walk(n: int) -> Grafo:
     return g
 
 
-def test_bfs():
+def main():
     """
     Executa os testes da função bfs
     """
@@ -177,13 +177,8 @@ def test_bfs():
     g.addAresta(3, 1)
     g.addAresta(4, 3)
 
-    max_v = g.bfs(0)
-
-    assert max_v == 5
-
-    max_v = g.bfs(2)
-
-    assert max_v == 0
+    assert g.bfs(0) == 5
+    assert g.bfs(2) == 0
 
     g = Grafo(10)
     g.addAresta(0, 3)
@@ -197,13 +192,11 @@ def test_bfs():
     g.addAresta(7, 4)
     g.addAresta(4, 1)
 
-    max_v = g.bfs(0)
+    assert g.bfs(0)
 
-    assert max_v == 7
-
-
-def main():
-    test_bfs()
+    """
+    Executa os testes das funções diametro e verificar_arvore 
+    """
 
     g = Grafo(6)
     g.addAresta(0, 1)
@@ -239,6 +232,11 @@ def main():
 
     assert verificar_arvore(g) == False
 
+    """
+    Testa a geração de árvores pelo random_tree_random_walk com múltiplos números de vértices
+    e cada número de vértices é testado 100 vezes.
+    Retorna o resultado dos testes no arquivo randomwalk.txt no formato esperado pelo programa plot.py
+    """
     runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
     resultado: Dict[int, float] = dict()
     for r in runs:
