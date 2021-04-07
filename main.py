@@ -1,5 +1,9 @@
-from typing import List
+# EQUIPE: Ana Laura Schoffen Rodrigues e Bruno Fusieger Santana
+# RAs: 115456 e 112646
+from typing import List, Dict
 from collections import deque
+from random import *
+
 
 class Vertice:
     """
@@ -16,7 +20,9 @@ class Vertice:
         construtor da classe Grafo.
         """
         self.num = num
-        self.distance = None
+        self.visitado = False
+        self.pai = None
+        self.d = None
         self.adj: List[Vertice] = []
 
     def __str__(self) -> str:
@@ -33,7 +39,8 @@ class Grafo:
         Cria um novo grafo com n vértices com os números 0, 1, ..., n-1.
         """
         self.vertices = [Vertice(i) for i in range(n)]
-        self.nodes = n
+        self.num_arrestas = 0
+        self.num_vertices = n
 
     def addAresta(self, u: int, v: int):
         """
@@ -44,6 +51,7 @@ class Grafo:
 
         Este método não verifica se a aresta (u, v) já existe no grafo.
         """
+        self.num_arrestas += 1
         self.vertices[u].adj.append(self.vertices[v])
         self.vertices[v].adj.append(self.vertices[u])
 
@@ -52,13 +60,15 @@ class Grafo:
         Versão modificada do BFS que calcula o vértice com distância máxima no grafo g em
         relação ao vértice v. Assume-se que v sempre está no grafo g
         """
-        
+
         for x in self.vertices:
-            x.distance = None
+            x.visitado = False
+            x.d = None
 
-        q = deque(maxlen=self.nodes)
+        q = deque(maxlen=self.num_vertices)
 
-        self.vertices[v].distance = 0
+        self.vertices[v].d = 0
+        self.vertices[v].visitado = True
 
         q.append(v)
 
@@ -68,11 +78,12 @@ class Grafo:
             node = q.popleft()
 
             for vertex in self.vertices[node].adj:
-                if vertex.distance is None:
-                    vertex.distance = self.vertices[node].distance + 1
+                if not vertex.visitado:
+                    vertex.d = self.vertices[node].d + 1
                     q.append(vertex.num)
+                    vertex.visitado = True
 
-                    if vertex.distance > self.vertices[v_max_distance].distance:
+                    if vertex.d > self.vertices[v_max_distance].d:
                         v_max_distance = vertex.num
 
         return v_max_distance
@@ -89,7 +100,26 @@ def diameter(g: Grafo) -> int:
 
     vertex_b = g.bfs(vertex_a)
 
-    return g.vertices[vertex_b].distance
+    return g.vertices[vertex_b].d
+
+
+def random_tree_random_walk(n: int) -> Grafo:
+    """
+    Gera uma árvore com n vértices usando o algoritmo de passeio aleatório e retorna a respectiva árvore
+    """
+    g = Grafo(n)
+    for v in g.vertices:
+        v.visitado = False
+    u = g.vertices[0]
+    u.visitado = True
+
+    while g.num_arrestas < n - 1:
+        v = g.vertices[randrange(0, n)]
+        if not v.visitado:
+            g.addAresta(u.num, v.num)
+            v.visitado = True
+        u = v
+    return g
 
 
 def test_bfs():
@@ -157,6 +187,20 @@ def main():
     g.addAresta(1, 5)
 
     assert diameter(g) == 5
+
+    runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
+    resultado: Dict[int, float] = dict()
+    for r in runs:
+        diametros = []
+        for i in range(0, 25):
+            g = random_tree_random_walk(r)
+            diametros.append(diameter(g))
+
+        resultado[r] = sum(diametros) / len(diametros)
+
+    with open("randomwalk.txt", 'w') as f:
+        for key, val in resultado.items():
+            f.write('%d %f\n' % (key, val))
 
 
 if __name__ == '__main__':
