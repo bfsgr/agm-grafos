@@ -91,11 +91,50 @@ class Grafo:
         return v_max_distance.num
 
 
+def verificar_arvore(g: Grafo) -> bool:
+    """
+    Verifica se um grafo é uma árvore, usando uma versão modificada do BFS
+    Retorna True se o grafo é uma árvore, False caso contrário
+    Usamos a definição de que qualquer grafo conexo com n vértices e n - 1 arestas é uma árvore
+    """
+
+    if g.num_arrestas != g.num_vertices - 1:
+        return False
+
+    for x in g.vertices:
+        x.visitado = False
+        x.d = None
+        x.pai = None
+
+    q = deque(maxlen=g.num_vertices)
+
+    g.vertices[0].d = 0
+    g.vertices[0].visitado = True
+
+    q.append(g.vertices[0])
+
+    processados = 1
+
+    while not len(q) == 0:
+        node: Vertice = q.popleft()
+
+        for v in node.adj:
+            if not v.visitado:
+                v.d = node.d + 1
+                v.pai = node.num
+                v.visitado = True
+                processados += 1
+                q.append(v)
+
+    return processados == g.num_vertices
+
+
 def diameter(g: Grafo) -> int:
     """
     Calcula o diametro da árvore g.
     O diametro é a maior distância entre dois nós folha.
     Assume-se que g é uma árvore válida
+    Caso o grafo g não seja uma árvore o retorno dessa função é imprevisível
     """
 
     vertex_a = g.bfs(0)
@@ -174,12 +213,14 @@ def main():
     g.addAresta(4, 5)
 
     assert diameter(g) == 4
+    assert verificar_arvore(g) == True
 
     g = Grafo(3)
     g.addAresta(0, 1)
     g.addAresta(0, 2)
 
     assert diameter(g) == 2
+    assert verificar_arvore(g) == True
 
     g = Grafo(6)
     g.addAresta(0, 1)
@@ -189,16 +230,28 @@ def main():
     g.addAresta(1, 5)
 
     assert diameter(g) == 5
+    assert verificar_arvore(g) == True
+
+    g = Grafo(3)
+    g.addAresta(0, 1)
+    g.addAresta(0, 2)
+    g.addAresta(1, 2)
+
+    assert verificar_arvore(g) == False
 
     runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
     resultado: Dict[int, float] = dict()
     for r in runs:
         diametros = []
-        for i in range(0, 25):
+        for i in range(0, 100):
             g = random_tree_random_walk(r)
-            diametros.append(diameter(g))
+            if verificar_arvore(g):
+                diametros.append(diameter(g))
+            else:
+                raise AssertionError("o grafo gerado por 'random_tree_random_walk' não é um árvore")
 
-        resultado[r] = sum(diametros) / len(diametros)
+        if len(diametros) != 0:
+            resultado[r] = sum(diametros) / len(diametros)
 
     with open("randomwalk.txt", 'w') as f:
         for key, val in resultado.items():
