@@ -59,34 +59,36 @@ class Grafo:
         """
         Versão modificada do BFS que calcula o vértice com distância máxima no grafo g em
         relação ao vértice v. Assume-se que v sempre está no grafo g
+        Retorna o número do vértice com distância máxima em relação à v
         """
 
         for x in self.vertices:
             x.visitado = False
             x.d = None
+            x.pai = None
 
         q = deque(maxlen=self.num_vertices)
 
         self.vertices[v].d = 0
         self.vertices[v].visitado = True
 
-        q.append(v)
+        q.append(self.vertices[v])
 
-        v_max_distance = v
+        v_max_distance = self.vertices[v]
 
         while not len(q) == 0:
-            node = q.popleft()
+            node: Vertice = q.popleft()
 
-            for vertex in self.vertices[node].adj:
+            for vertex in node.adj:
                 if not vertex.visitado:
-                    vertex.d = self.vertices[node].d + 1
-                    q.append(vertex.num)
+                    vertex.d = node.d + 1
                     vertex.visitado = True
+                    q.append(vertex)
 
-                    if vertex.d > self.vertices[v_max_distance].d:
-                        v_max_distance = vertex.num
+                    if vertex.d > v_max_distance.d:
+                        v_max_distance = vertex
 
-        return v_max_distance
+        return v_max_distance.num
 
 
 def diameter(g: Grafo) -> int:
