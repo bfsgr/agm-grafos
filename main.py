@@ -193,7 +193,7 @@ def main():
     g.addAresta(7, 4)
     g.addAresta(4, 1)
 
-    assert vertice_mais_distante(g, 0)
+    assert vertice_mais_distante(g, 0) == 7
 
     """
     Executa os testes das funções diametro e verificar_arvore 
