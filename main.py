@@ -151,6 +151,8 @@ def random_tree_random_walk(n: int) -> Grafo:
     """
     g = Grafo(n)
     for v in g.vertices:
+        v.pai = None
+        v.d = None
         v.visitado = False
     u = g.vertices[0]
     u.visitado = True
