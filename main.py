@@ -1,9 +1,9 @@
 # EQUIPE: Ana Laura Schoffen Rodrigues e Bruno Fusieger Santana
 # RAs: 115456 e 112646
+import random
 from typing import List, Dict
 from collections import deque
-from random import *
-
+from random import choice
 
 class Vertice:
     """
@@ -158,7 +158,7 @@ def random_tree_random_walk(n: int) -> Grafo:
     u.visitado = True
 
     while g.num_arrestas < n - 1:
-        v = g.vertices[randrange(0, n)]
+        v = choice(g.vertices)
         if not v.visitado:
             g.addAresta(u.num, v.num)
             v.visitado = True
@@ -244,7 +244,7 @@ def main():
     resultado: Dict[int, float] = dict()
     for r in runs:
         diametros = []
-        for i in range(0, 100):
+        for _ in range(0, 100):
             g = random_tree_random_walk(r)
             if verificar_arvore(g):
                 diametros.append(diameter(g))
