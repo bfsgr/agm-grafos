@@ -1,6 +1,5 @@
 # EQUIPE: Ana Laura Schoffen Rodrigues e Bruno Fusieger Santana
 # RAs: 115456 e 112646
-import random
 from typing import List, Dict
 from collections import deque
 from random import choice
