@@ -2,18 +2,24 @@
 # RAs: 115456 e 112646
 from typing import List, Dict
 from collections import deque
-from random import choice
+from random import choice, random
+
 
 class Vertice:
     """
-    Representa um vértice de um grafo com um número, uma lista de adjacências
-    e uma valor de distância
+    Representa um vértice de um grafo com um número, uma lista de adjacências,
+    uma valor de distância, uma flag de visitado, um atributo pai, um posto e um rank
     """
 
     def __init__(self, num: int) -> None:
         """
         Cria um novo vértice com o número num e com uma lista de adjacências vazia.
-        E também um número distance que é usado durante o BFS
+        E também cria:
+            d: um número distance que é usado durante o BFS
+            visitado: 'cor' do vértice usado no BFS
+            pai: vértice pai usado no BFS
+            post: um posto usado no mst-kruskal
+            rank: ranking usado no mst-kruskal
 
         Em geral este construtor não é chamado diretamente mas é chamado pelo
         construtor da classe Grafo.
@@ -24,35 +30,46 @@ class Vertice:
         self.d = None
         self.adj: List[Vertice] = []
 
+        self.p = self
+        self.rank = 0
+
     def __str__(self) -> str:
         return "Vertice(%d)" % self.num
 
 
 class Grafo:
     """
-    Representa um grafo não orientado
+    Representa um grafo não orientado por meio de uma lista de adjacências
     """
 
     def __init__(self, n: int) -> None:
         """
         Cria um novo grafo com n vértices com os números 0, 1, ..., n-1.
+        Também registra o numero de vértices e arrestas do grafo
+        Cria um dicionário para guardar os pesos das arestas
         """
         self.vertices = [Vertice(i) for i in range(n)]
         self.num_arrestas = 0
         self.num_vertices = n
+        self.pesos = dict()
 
-    def addAresta(self, u: int, v: int):
+    def addAresta(self, u: int, v: int, *args):
         """
         Adiciona a aresta (u, v) ao grafo.
 
         u e v precisam ser vértices válidos, isto é precisam ser um valor
         entre 0 e n - 1, onde n é a quantidade de vértices do grafo.
 
+        Se um terceiro argumento por passado, ele é interpretado como peso e registrado no dicionário de pesos
+
         Este método não verifica se a aresta (u, v) já existe no grafo.
         """
         self.num_arrestas += 1
         self.vertices[u].adj.append(self.vertices[v])
         self.vertices[v].adj.append(self.vertices[u])
+
+        if args:
+            self.pesos[tuple(sorted((u, v)))] = args[0]
 
 
 def vertice_mais_distante(g: Grafo, v: int) -> int:
@@ -165,9 +182,83 @@ def random_tree_random_walk(n: int) -> Grafo:
     return g
 
 
+def make_set(v: Vertice):
+    """
+    Faz do vértice o seu próprio conjunto
+    Função relacionada ao algoritmo de kruskal
+    """
+    v.x = v
+    v.rank = 0
+
+
+def find_set(v: Vertice) -> Vertice:
+    """
+    Procura a raiz da árvore de conjunto
+    Função relacionada ao algoritmo de kruskal
+    """
+    if v != v.p:
+        v.p = find_set(v.p)
+    return v.p
+
+
+def union(x: Vertice, y: Vertice):
+    """
+    Faz a união de dois conjuntos disjuntos
+    Função relacionada ao algoritmo de kruskal
+    """
+    link(find_set(x), find_set(y))
+
+
+def link(x: Vertice, y: Vertice):
+    """
+    Une o vértice raiz com menor rank ao vértice com maior rank
+    Função relacionada ao algoritmo de kruskal
+    """
+    if x.rank > y.rank:
+        y.p = x
+    else:
+        x.p = y
+        if x.rank == y.rank:
+            y.rank += 1
+
+
+def mst_kruskal(g: Grafo) -> Grafo:
+    """
+    A partir de um grafo com arrestas com peso, constrói uma árvore geradora mínima
+    """
+    arvore = Grafo(g.num_vertices)
+
+    for vertex in g.vertices:
+        make_set(vertex)
+
+    ordenado = sorted(g.pesos, key=g.pesos.get)
+
+    for edge in ordenado:
+        if find_set(g.vertices[edge[0]]) != find_set(g.vertices[edge[1]]):
+            arvore.addAresta(edge[0], edge[1])
+            union(g.vertices[edge[0]], g.vertices[edge[1]])
+
+    return arvore
+
+
+def random_tree_kruskal(n: int) -> Grafo:
+    """
+    Gera um grafo completo com n vértices e pesos aleatórios para as arrestas e
+    executa o algoritmo de kruskal para criar uma árvore geradora mínima do grafo.
+    """
+    g = Grafo(n)
+    for u in range(0, n):
+        for v in range(u + 1, n):
+            g.addAresta(u, v, random())
+
+    tree = mst_kruskal(g)
+
+    return tree
+
+
 def main():
     """
-    Executa os testes da função bfs
+    Executa os testes da função verificar_mais_distante
     """
     # Grafo da figura 22.2 do Cormen
     g = Grafo(6)
@@ -197,7 +288,7 @@ def main():
     assert vertice_mais_distante(g, 0) == 7
 
     """
-    Executa os testes das funções diametro e verificar_arvore 
+    Executa os testes das funções diâmetro e verificar_arvore
     """
 
     g = Grafo(6)
@@ -234,16 +325,39 @@ def main():
 
     assert verificar_arvore(g) is False
 
+    # Grafo da figura 23.1 Cormen
+    g = Grafo(9)
+    g.addAresta(0, 1, 4)
+    g.addAresta(0, 7, 8)
+    g.addAresta(1, 7, 11)
+    g.addAresta(7, 8, 7)
+    g.addAresta(1, 2, 8)
+    g.addAresta(7, 6, 1)
+    g.addAresta(8, 2, 2)
+    g.addAresta(8, 6, 6)
+    g.addAresta(6, 5, 2)
+    g.addAresta(2, 5, 4)
+    g.addAresta(2, 3, 7)
+    g.addAresta(3, 4, 9)
+    g.addAresta(3, 5, 14)
+    g.addAresta(4, 5, 10)
+
+    saida = mst_kruskal(g)
+    assert verificar_arvore(saida) is True
+    assert diameter(saida) == 7
+
     """
     Testa a geração de árvores pelo random_tree_random_walk com múltiplos números de vértices
-    e cada número de vértices é testado 100 vezes.
+    e cada número de vértices é testado 10 vezes.
     Retorna o resultado dos testes no arquivo randomwalk.txt no formato esperado pelo programa plot.py
     """
     runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
     resultado: Dict[int, float] = dict()
+    print("Algoritmo Random-Walk")
     for r in runs:
+        print("Medindo N = " + str(r))
         diametros = []
-        for _ in range(0, 100):
+        for _ in range(0, 10):
             g = random_tree_random_walk(r)
             if verificar_arvore(g):
                 diametros.append(diameter(g))
@@ -254,6 +368,31 @@ def main():
             resultado[r] = sum(diametros) / len(diametros)
 
     with open("randomwalk.txt", 'w') as f:
+        for key, val in resultado.items():
+            f.write('%d %f\n' % (key, val))
+
+    """
+    Testa a geração de árvores pelo random_tree_kruskal com múltiplos números de vértices
+    e cada número de vértices é testado 10 vezes.
+    Retorna o resultado dos testes no arquivo kruskal.txt no formato esperado pelo programa plot.py
+    """
+    runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
+    resultado: Dict[int, float] = dict()
+    print("Algoritmo Kruskal")
+    for r in runs:
+        print("Medindo N = " + str(r))
+        diametros = []
+        for _ in range(0, 10):
+            g = random_tree_kruskal(r)
+            if verificar_arvore(g):
+                diametros.append(diameter(g))
+            else:
+                raise AssertionError("o grafo gerado por 'random_tree_random_walk' não é um árvore")
+
+        if len(diametros) != 0:
+            resultado[r] = sum(diametros) / len(diametros)
+
+    with open("kruskal.txt", 'w') as f:
         for key, val in resultado.items():
             f.write('%d %f\n' % (key, val))
 
