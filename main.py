@@ -245,9 +245,31 @@ def random_tree_kruskal(n: int) -> Grafo:
 
 def main():
     """
+    Executa um teste básico do BFS
+    """
+    g = Grafo(3)
+    g.addAresta(0, 1)
+    g.addAresta(0, 2)
+    g.addAresta(1, 2)
+
+    g.bfs(0)
+
+    assert g.vertices[0].pai is None
+    assert g.vertices[0].visitado is True
+    assert g.vertices[0].d == 0
+
+    assert g.vertices[1].pai is g.vertices[0]
+    assert g.vertices[1].visitado is True
+    assert g.vertices[1].d == 1
+
+    assert g.vertices[2].pai is g.vertices[0]
+    assert g.vertices[2].visitado is True
+    assert g.vertices[2].d == 1
+
+    """
     Executa os testes da função verificar_mais_distante
     """
-    # Grafo da figura 22.2 do Cormen
+    # Grafo da figura 22.2 do Cormen (versão não orientada)
     g = Grafo(6)
     g.addAresta(0, 1)
     g.addAresta(0, 3)
