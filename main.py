@@ -174,7 +174,7 @@ def make_set(v: Vertice):
     Faz do vértice o seu próprio conjunto
     Função relacionada ao algoritmo de kruskal
     """
-    v.x = v
+    v.p = v
     v.rank = 0
 
 
