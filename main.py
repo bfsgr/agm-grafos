@@ -53,7 +53,7 @@ class Grafo:
         self.num_vertices = n
         self.pesos = dict()
 
-    def addAresta(self, u: int, v: int, *args):
+    def addAresta(self, u: int, v: int, peso=None):
         """
         Adiciona a aresta (u, v) ao grafo.
 
@@ -68,8 +68,8 @@ class Grafo:
         self.vertices[u].adj.append(self.vertices[v])
         self.vertices[v].adj.append(self.vertices[u])
 
-        if args:
-            self.pesos[tuple(sorted((u, v)))] = args[0]
+        if peso:
+            self.pesos[tuple(sorted((u, v)))] = peso
 
 
 def vertice_mais_distante(g: Grafo, v: int) -> int:
@@ -233,10 +233,10 @@ def mst_kruskal(g: Grafo) -> Grafo:
 
     ordenado = sorted(g.pesos, key=g.pesos.get)
 
-    for edge in ordenado:
-        if find_set(g.vertices[edge[0]]) != find_set(g.vertices[edge[1]]):
-            arvore.addAresta(edge[0], edge[1])
-            union(g.vertices[edge[0]], g.vertices[edge[1]])
+    for (u, v) in ordenado:
+        if find_set(g.vertices[u]) != find_set(g.vertices[v]):
+            arvore.addAresta(u, v)
+            union(g.vertices[u], g.vertices[v])
 
     return arvore
 
@@ -353,7 +353,7 @@ def main():
     """
     runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
     resultado: Dict[int, float] = dict()
-    print("Algoritmo Random-Walk")
+    print("Algoritmo Random-Walk - 10 iterações por N")
     for r in runs:
         print("Medindo N = " + str(r))
         diametros = []
@@ -378,7 +378,7 @@ def main():
     """
     runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
     resultado: Dict[int, float] = dict()
-    print("Algoritmo Kruskal")
+    print("Algoritmo Kruskal - 10 iterações por N")
     for r in runs:
         print("Medindo N = " + str(r))
         diametros = []
@@ -387,7 +387,7 @@ def main():
             if verificar_arvore(g):
                 diametros.append(diameter(g))
             else:
-                raise AssertionError("o grafo gerado por 'random_tree_random_walk' não é um árvore")
+                raise AssertionError("o grafo gerado por 'random_tree_kruskal' não é um árvore")
 
         if len(diametros) != 0:
             resultado[r] = sum(diametros) / len(diametros)
