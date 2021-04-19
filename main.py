@@ -334,6 +334,38 @@ def main():
 
     assert verificar_arvore(g) is False
 
+    """
+    Testa as funções make_set, find_set, link, union e mst_kruskal
+    """
+
+    v = Vertice(0)
+    make_set(v)
+
+    assert v.rank == 0
+    assert v.p is v
+    assert find_set(v) is v
+
+    u = Vertice(1)
+    make_set(u)
+
+    link(v, u)
+    assert find_set(v) is u
+
+    w = Vertice(2)
+    make_set(w)
+
+    union(v, w)
+    assert find_set(w) is u
+
+    g = Grafo(3)
+    g.addAresta(0, 1, 0.2)
+    g.addAresta(0, 2, 0.1)
+    g.addAresta(1, 2, 0.5)
+
+    saida = mst_kruskal(g)
+    assert verificar_arvore(saida) is True
+    assert diameter(saida) == 2
+
     # Grafo da figura 23.1 Cormen
     g = Grafo(9)
     g.addAresta(0, 1, 4)
