@@ -403,7 +403,7 @@ def main():
             if verificar_arvore(g):
                 diametros.append(diameter(g))
             else:
-                raise AssertionError("o grafo gerado por 'random_tree_random_walk' não é um árvore")
+                raise AssertionError("o grafo gerado por 'random_tree_random_walk' não é uma árvore")
 
         if len(diametros) != 0:
             resultado[r] = sum(diametros) / len(diametros)
@@ -428,7 +428,7 @@ def main():
             if verificar_arvore(g):
                 diametros.append(diameter(g))
             else:
-                raise AssertionError("o grafo gerado por 'random_tree_kruskal' não é um árvore")
+                raise AssertionError("o grafo gerado por 'random_tree_kruskal' não é uma árvore")
 
         if len(diametros) != 0:
             resultado[r] = sum(diametros) / len(diametros)
