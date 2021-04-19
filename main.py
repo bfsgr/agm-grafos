@@ -71,46 +71,50 @@ class Grafo:
         if peso:
             self.pesos[tuple(sorted((u, v)))] = peso
 
+    def bfs(self, v: int):
+        """
+        Função BFS básica que calcula as distâncias relativas ao vértice v
+        Assume-se que v é um vértice válido no grafo.
+        """
+        for x in self.vertices:
+            x.visitado = False
+            x.d = None
+            x.pai = None
+
+        q = deque(maxlen=self.num_vertices)
+
+        self.vertices[v].d = 0
+        self.vertices[v].visitado = True
+
+        q.append(self.vertices[v])
+
+        while not len(q) == 0:
+            node: Vertice = q.popleft()
+            for vertex in node.adj:
+                if not vertex.visitado:
+                    vertex.d = node.d + 1
+                    vertex.visitado = True
+                    q.append(vertex)
 
 def vertice_mais_distante(g: Grafo, v: int) -> int:
     """
-    Versão modificada do BFS que calcula o vértice com distância máxima no grafo g em
-    relação ao vértice v. Assume-se que v sempre está no grafo g
-    Retorna o número do vértice com distância máxima em relação à v
+    Usa a função BFS para calcular o vértice acessível com distância máxima no grafo g em
+    relação ao vértice v.
+    Assume-se que v sempre está no grafo g
+    Retorna o número do vértice acessível com distância máxima em relação à v
     """
 
-    for x in g.vertices:
-        x.visitado = False
-        x.d = None
-        x.pai = None
+    g.bfs(v)
+    maior: Vertice = g.vertices[v]
+    for v in g.vertices:
+        if v.d and v.d > maior.d:
+            maior = v
 
-    q = deque(maxlen=g.num_vertices)
-
-    g.vertices[v].d = 0
-    g.vertices[v].visitado = True
-
-    q.append(g.vertices[v])
-
-    v_max_distance = g.vertices[v]
-
-    while not len(q) == 0:
-        node: Vertice = q.popleft()
-
-        for vertex in node.adj:
-            if not vertex.visitado:
-                vertex.d = node.d + 1
-                vertex.visitado = True
-                q.append(vertex)
-
-                if vertex.d > v_max_distance.d:
-                    v_max_distance = vertex
-
-    return v_max_distance.num
-
+    return maior.num
 
 def verificar_arvore(g: Grafo) -> bool:
     """
-    Verifica se um grafo é uma árvore, usando uma versão modificada do BFS
+    Verifica se um grafo é uma árvore, usando o BFS
     Retorna True se o grafo é uma árvore, False caso contrário
     Usamos a definição de que qualquer grafo conexo com n vértices e n - 1 arestas é uma árvore
     """
@@ -118,32 +122,13 @@ def verificar_arvore(g: Grafo) -> bool:
     if g.num_arrestas != g.num_vertices - 1:
         return False
 
-    for x in g.vertices:
-        x.visitado = False
-        x.d = None
-        x.pai = None
+    g.bfs(0)
 
-    q = deque(maxlen=g.num_vertices)
+    for v in g.vertices:
+        if not v.visitado:
+            return False
 
-    g.vertices[0].d = 0
-    g.vertices[0].visitado = True
-
-    q.append(g.vertices[0])
-
-    processados = 1
-
-    while not len(q) == 0:
-        node: Vertice = q.popleft()
-
-        for v in node.adj:
-            if not v.visitado:
-                v.d = node.d + 1
-                v.pai = node.num
-                v.visitado = True
-                processados += 1
-                q.append(v)
-
-    return processados == g.num_vertices
+    return True
 
 
 def diameter(g: Grafo) -> int:
