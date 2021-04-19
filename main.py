@@ -93,7 +93,9 @@ class Grafo:
             for vertex in node.adj:
                 if not vertex.visitado:
                     vertex.d = node.d + 1
+                    vertex.pai = node
                     vertex.visitado = True
+
                     q.append(vertex)
 
 def vertice_mais_distante(g: Grafo, v: int) -> int:
