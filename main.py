@@ -1,5 +1,7 @@
 # EQUIPE: Ana Laura Schoffen Rodrigues e Bruno Fusieger Santana
 # RAs: 115456 e 112646
+from copy import copy
+from math import inf
 from typing import List, Dict
 from collections import deque
 from random import choice, random
@@ -20,6 +22,7 @@ class Vertice:
             pai: vértice pai usado no BFS
             post: um posto usado no mst-kruskal
             rank: ranking usado no mst-kruskal
+            chave: usado no algoritmo de prim
 
         Em geral este construtor não é chamado diretamente mas é chamado pelo
         construtor da classe Grafo.
@@ -32,6 +35,8 @@ class Vertice:
 
         self.p = self
         self.rank = 0
+
+        self.chave = inf
 
     def __str__(self) -> str:
         return "Vertice(%d)" % self.num
@@ -47,11 +52,14 @@ class Grafo:
         Cria um novo grafo com n vértices com os números 0, 1, ..., n-1.
         Também registra o numero de vértices e arrestas do grafo
         Cria um dicionário para guardar os pesos das arestas
+        E uma matriz de adjacências também com os pesos
         """
         self.vertices = [Vertice(i) for i in range(n)]
         self.num_arrestas = 0
         self.num_vertices = n
         self.pesos = dict()
+
+        self.matriz = [[0 for _ in range(0, n)] for _ in range(0, n)]
 
     def addAresta(self, u: int, v: int, peso=None):
         """
@@ -61,6 +69,7 @@ class Grafo:
         entre 0 e n - 1, onde n é a quantidade de vértices do grafo.
 
         Se um terceiro argumento por passado, ele é interpretado como peso e registrado no dicionário de pesos
+        e na matriz de adjacências
 
         Este método não verifica se a aresta (u, v) já existe no grafo.
         """
@@ -70,6 +79,8 @@ class Grafo:
 
         if peso:
             self.pesos[tuple(sorted((u, v)))] = peso
+            self.matriz[u][v] = peso
+            self.matriz[v][u] = peso
 
     def bfs(self, v: int):
         """
@@ -212,6 +223,7 @@ def link(x: Vertice, y: Vertice):
 def mst_kruskal(g: Grafo) -> Grafo:
     """
     A partir de um grafo com arrestas com peso, constrói uma árvore geradora mínima
+    usando o algoritmo de kruskal
     """
     arvore = Grafo(g.num_vertices)
 
@@ -239,6 +251,56 @@ def random_tree_kruskal(n: int) -> Grafo:
             g.addAresta(u, v, random())
 
     tree = mst_kruskal(g)
+
+    return tree
+
+
+def mst_prim(g: Grafo, r: int) -> Grafo:
+    """
+    A partir de um grafo com arrestas com peso, constrói uma árvore geradora mínima
+    usando o algoritmo de prim
+    """
+    for v in g.vertices:
+        v.chave = inf
+        v.pai = None
+        v.visitado = False
+
+    g.vertices[r].chave = 0
+
+    fila = copy(g.vertices)
+
+    while len(fila) != 0:
+        u: Vertice = min(fila, key=lambda w: w.chave)
+        u.visitado = True
+        fila.remove(u)
+
+        for x in u.adj:
+            if not x.visitado and g.matriz[u.num][x.num] < x.chave:
+                x.pai = u.num
+                x.chave = g.matriz[u.num][x.num]
+
+    tree = Grafo(g.num_vertices)
+
+    for v in g.vertices:
+        if v.pai is not None:
+            tree.addAresta(v.num, v.pai)
+
+    return tree
+
+
+def random_tree_prim(n: int) -> Grafo:
+    """
+    Gera um grafo completo com n vértices e pesos aleatórios para as arrestas e
+    executa o algoritmo de prim para criar uma árvore geradora mínima do grafo.
+    """
+    g = Grafo(n)
+    for u in range(0, n):
+        for v in range(u + 1, n):
+            g.addAresta(u, v, random())
+
+    s = g.vertices[0]
+
+    tree = mst_prim(g, s.num)
 
     return tree
 
@@ -387,18 +449,39 @@ def main():
     assert verificar_arvore(saida) is True
     assert diameter(saida) == 7
 
+    # Grafo da figura 23.1 Cormen
+    g = Grafo(9)
+    g.addAresta(0, 1, 4)
+    g.addAresta(0, 7, 8)
+    g.addAresta(1, 7, 11)
+    g.addAresta(7, 8, 7)
+    g.addAresta(1, 2, 8)
+    g.addAresta(7, 6, 1)
+    g.addAresta(8, 2, 2)
+    g.addAresta(8, 6, 6)
+    g.addAresta(6, 5, 2)
+    g.addAresta(2, 5, 4)
+    g.addAresta(2, 3, 7)
+    g.addAresta(3, 4, 9)
+    g.addAresta(3, 5, 14)
+    g.addAresta(4, 5, 10)
+
+    saida = mst_prim(g, 0)
+    assert verificar_arvore(saida) is True
+    assert diameter(saida) == 5
+
     """
     Testa a geração de árvores pelo random_tree_random_walk com múltiplos números de vértices
-    e cada número de vértices é testado 10 vezes.
+    e cada número de vértices é testado 500 vezes.
     Retorna o resultado dos testes no arquivo randomwalk.txt no formato esperado pelo programa plot.py
     """
     runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
     resultado: Dict[int, float] = dict()
-    print("Algoritmo Random-Walk - 10 iterações por N")
+    print("Algoritmo Random-Walk - 500 iterações por N")
     for r in runs:
         print("Medindo N = " + str(r))
         diametros = []
-        for _ in range(0, 10):
+        for _ in range(0, 500):
             g = random_tree_random_walk(r)
             if verificar_arvore(g):
                 diametros.append(diameter(g))
@@ -414,16 +497,15 @@ def main():
 
     """
     Testa a geração de árvores pelo random_tree_kruskal com múltiplos números de vértices
-    e cada número de vértices é testado 10 vezes.
+    e cada número de vértices é testado 500 vezes.
     Retorna o resultado dos testes no arquivo kruskal.txt no formato esperado pelo programa plot.py
     """
-    runs = [250, 500, 750, 1000, 1250, 1500, 1750, 2000]
-    resultado: Dict[int, float] = dict()
-    print("Algoritmo Kruskal - 10 iterações por N")
+    resultado = dict()
+    print("Algoritmo Kruskal - 500 iterações por N")
     for r in runs:
         print("Medindo N = " + str(r))
         diametros = []
-        for _ in range(0, 10):
+        for _ in range(0, 500):
             g = random_tree_kruskal(r)
             if verificar_arvore(g):
                 diametros.append(diameter(g))
@@ -434,6 +516,31 @@ def main():
             resultado[r] = sum(diametros) / len(diametros)
 
     with open("kruskal.txt", 'w') as f:
+        for key, val in resultado.items():
+            f.write('%d %f\n' % (key, val))
+
+
+    """
+    Testa a geração de árvores pelo random_tree_prim com múltiplos números de vértices
+    e cada número de vértices é testado 500 vezes.
+    Retorna o resultado dos testes no arquivo prim.txt no formato esperado pelo programa plot.py
+    """
+    resultado = dict()
+    print("Algoritmo Prim - 500 iterações por N")
+    for r in runs:
+        print("Medindo N = " + str(r))
+        diametros = []
+        for _ in range(0, 500):
+            g = random_tree_prim(r)
+            if verificar_arvore(g):
+                diametros.append(diameter(g))
+            else:
+                raise AssertionError("o grafo gerado por 'random_tree_prim' não é uma árvore")
+
+        if len(diametros) != 0:
+            resultado[r] = sum(diametros) / len(diametros)
+
+    with open("prim.txt", 'w') as f:
         for key, val in resultado.items():
             f.write('%d %f\n' % (key, val))
 
