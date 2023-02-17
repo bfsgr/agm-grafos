@@ -1,4 +1,4 @@
-# EQUIPE: Ana Laura Schoffen Rodrigues e Bruno Fusieger Santana
+# EQUIPE: Fae Schoffen e Bruno Fusieger Santana
 # RAs: 115456 e 112646
 from copy import copy
 from math import inf
